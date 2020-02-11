@@ -1,16 +1,34 @@
 import telebot
 import json
 import sys
+import os
 import threading
+import time
+import datetime
+
+
+# Here are defined some default values
+delay_between_temp_check = 10
+
+
+# we create a logs folder
+if not os.path.exists('logs'):
+    os.makedirs('logs')
+
+def metricsPolling():
+    while True:
+        time.sleep(delay_between_temp_check)
+        print("test")
 
 def getTemp():
     try:
         with open('/sys/class/thermal/thermal_zone0/temp', 'r') as ftemp:
             current_temp = int((int(ftemp.read()) / 1000)*100)/100
             temp = current_temp
-        except Exception as e:
+    except Exception as e:
             print(str(e))
-        return temp
+            temp = None
+    return temp
 
 try:
 
@@ -47,6 +65,9 @@ def get_temp(message):
         bot.reply_to(message, "impossible to get the température from the cpu")
     else:
         bot.reply_to(message, str(temp) + "°C")
+
+
+x = threading.Thread(target = metricsPolling, argss =(,), daemon=True)
 
 print("bot start polling...")
 bot.polling(none_stop=False, interval=1, timeout=20)
