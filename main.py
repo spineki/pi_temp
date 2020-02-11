@@ -9,7 +9,7 @@ import datetime
 
 # Here are defined some default values
 delay_between_temp_check = 10
-
+last_day = None
 
 # we create a logs folder
 if not os.path.exists('logs'):
@@ -17,8 +17,19 @@ if not os.path.exists('logs'):
 
 def metricsPolling():
     while True:
+        current_temp = getTemp()
+
+        d = datetime.datetime.today()
+        current_day = d.strftime("%d-%B-%Y")
+        current_hour = d.strftime("%H:%M:%S")
+        if current_day is not last_day:
+            last_day = current_day
+        
+
+        with open("logs/"+last_day, "a+") as file:
+            file.write(current_hour + " " + current_temp)
+
         time.sleep(delay_between_temp_check)
-        print("test")
 
 def getTemp():
     try:
@@ -67,7 +78,7 @@ def get_temp(message):
         bot.reply_to(message, str(temp) + "°C")
 
 
-x = threading.Thread(target = metricsPolling, argss =(,), daemon=True)
-
+x = threading.Thread(target = metricsPolling , daemon=True)
+x.start()
 print("bot start polling...")
 bot.polling(none_stop=False, interval=1, timeout=20)
