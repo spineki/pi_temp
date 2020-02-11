@@ -30,7 +30,14 @@ def exit(message):
     bot.reply_to(message, "Bye!")
     sys.exit(0)
 
-
+@bot.message_handler(commands=["temp"])
+def get_temp(message):
+    try:
+        with open('/sys/class/thermal/thermal_zone0/temp', 'r') as ftemp:
+            current_temp = int(ftemp.read()) / 1000
+            bot.reply_to(message, current_temp)
+    except:
+         bot.reply_to(message, "impossible to get the temperature from the cpu, please, make sure it runs on a raspberry pi!")
 
 print("bot start polling...")
 bot.polling(none_stop=False, interval=1, timeout=20)
