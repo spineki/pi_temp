@@ -28,6 +28,7 @@ def send_welcome(message):
 @bot.message_handler(commands=['stop', "exit", "shutdown"])
 def exit(message):
     bot.reply_to(message, "Bye!")
+    print("find du pooling")
     sys.exit(0)
 
 @bot.message_handler(commands=["temp"])
