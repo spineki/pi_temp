@@ -16,18 +16,19 @@ if not os.path.exists('logs'):
     os.makedirs('logs')
 
 def metricsPolling():
+    global last_day
     while True:
         current_temp = getTemp()
 
         d = datetime.datetime.today()
-        current_day = d.strftime("%d-%B-%Y")
+        current_day = d.strftime("%d-%m-%Y")
         current_hour = d.strftime("%H:%M:%S")
         if current_day is not last_day:
             last_day = current_day
         
 
         with open("logs/"+last_day, "a+") as file:
-            file.write(current_hour + " " + current_temp)
+            file.write(current_hour + " " + str(current_temp) + "\n")
 
         time.sleep(delay_between_temp_check)
 
