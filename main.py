@@ -47,7 +47,7 @@ def getLogs(current_day):
         logs = ""
         with open("logs/" + current_day, "r") as file:
             for ligne in file:
-                logs += ligne + "°C"
+                logs += ligne + "\n"
         return logs
     except:
         return None
@@ -99,7 +99,7 @@ def get_logs(message):
     logs = getLogs(current_day)
 
     if logs is not None:
-        bot.reply_to(message, "here are the logs" + logs + "\n")
+        bot.reply_to(message, "here are the logs\n" + logs)
     else:
         print(str(e))
         bot.reply_to(message, "impossible to get the logs from " + current_day)
