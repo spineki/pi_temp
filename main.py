@@ -78,8 +78,24 @@ def get_temp(message):
     else:
         bot.reply_to(message, str(temp) + "°C")
 
+@bot.message_handler(commands=["log", "logs"])
+def get_logs(message):
+
+    d = datetime.datetime.today()
+    current_day = d.strftime("%d-%m-%Y")
+
+    try:
+        logs = ""
+        with open("logs/" + current_day+".json", "r") as file:
+            for ligne in file:
+                logs+=ligne
+        bot.reply_to(message, "impossible to get the température from the cpu")
+    except:
+        bot.reply_to(message, "here are the logs\n" + logs)
 
 x = threading.Thread(target = metricsPolling , daemon=True)
 x.start()
+
+
 print("bot start polling...")
 bot.polling(none_stop=False, interval=1, timeout=20)
