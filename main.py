@@ -21,6 +21,10 @@ try:
 except Exception as e:
     print("impossible ti initiate a bot from the bot token. ", str(e))
 
+# Lauching the bot ---------------------------------------------------------------------------------------------------------------------------------------
+bot.send_message(bot_chatID, "Awaken!!!")
+print("bot start polling...")
+
 # important functions ------------------------------------------------------------------------------------------------------------------------------------
 def getTemp():
     try:
@@ -135,9 +139,6 @@ if not os.path.exists('logs'):
 if not os.path.exists('graph'):
     os.makedirs('graph')
 
-# Lauching the bot ---------------------------------------------------------------------------------------------------------------------------------------
-bot.send_message(bot_chatID, "Awaken!!!")
-print("bot start polling...")
 
 # Launching the background thread ------------------------------------------------------------------------------------------------------------------------
 def metricsPolling():
