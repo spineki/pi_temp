@@ -8,15 +8,13 @@ import datetime
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 
-# Here are defined some default values
+# default values -----------------------------------------------------------------------------------------------------------------------------------------
 delay_between_temp_check = 10
 last_day = None
 
-# we create a logs folder
-if not os.path.exists('logs'):
-    os.makedirs('logs')
-
+# important functions ------------------------------------------------------------------------------------------------------------------------------------
 def metricsPolling():
     global last_day
     while True:
@@ -44,6 +42,17 @@ def getTemp():
             temp = None
     return temp
 
+def getLogs(current_day):
+    try:
+        logs = ""
+        with open("logs/" + current_day, "r") as file:
+            for ligne in file:
+                logs += ligne + "°C"
+        return logs
+    except:
+        return None
+
+# getting the secrets ------------------------------------------------------------------------------------------------------------------------------------
 try:
 
     with open("secrets.json", "r") as file:
@@ -56,12 +65,8 @@ except Exception as e:
     print("impossible to load the token and chatID. Are you sure you have a proper secrets.json in the same folder", str(e))
     sys.exit(1)
 
-try:
-    bot = telebot.TeleBot(bot_token)
-except Exception as e:
-    print("impossible ti initiate a bot from the bot token. ", str(e))
 
-
+# COMMANDS -----------------------------------------------------------------------------------------------------------------------------------------------
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
 	bot.reply_to(message, "Hi! type /temp to get the temp, /recap to get a recap, /stop to stop the programm on the raspberry")
@@ -86,13 +91,11 @@ def get_logs(message):
     d = datetime.datetime.today()
     current_day = d.strftime("%d-%m-%Y")
 
-    try:
-        logs = ""
-        with open("logs/" + current_day, "r") as file:
-            for ligne in file:
-                logs+=ligne + "°C"
+    logs = getLogs(current_day)
+
+    if logs is not None:
         bot.reply_to(message, "here are the logs\n" + logs)
-    except Exception as e:
+    else:
         print(str(e))
         bot.reply_to(message, "impossible to get the logs from " + current_day)
 
@@ -100,15 +103,51 @@ def get_logs(message):
 def get_graph(message):
     global bot_chatID
     print("début du graphe")
-    plt.clf()
-    plt.plot([1,2,3])
-    plt.savefig("graph/graph.png")
-    photo = open("graph/graph.png", "rb")
-    bot.send_photo(bot_chatID, photo)
-    print("fini")
 
+    d = datetime.datetime.today()
+    current_day = d.strftime("%d-%m-%Y")
+    logs = getLogs(current_day)
+
+    if logs is not None:
+        plt.clf()
+        dico = {}
+        lignes = logs.split("\n")
+        for ligne in lignes:
+            tab = ligne.split()
+            dico[tab[0]] = tab[1]
+
+        X = list(dico)
+        Y = [dico[k] for k in x]
+
+        plt.plot(X, Y)
+        plt.savefig("graph/graph.png")
+        photo = open("graph/graph.png", "rb")
+        bot.send_photo(bot_chatID, photo)
+    else:
+        bot.reply_to(message, "unable to retrieve the logs from" + current_day)
+
+
+# Creating the folders -----------------------------------------------------------------------------------------------------------------------------------
+if not os.path.exists('logs'):
+    os.makedirs('logs')
+
+if not os.path.exists('graph'):
+    os.makedirs('graph')
+
+
+# Launching the background thread ------------------------------------------------------------------------------------------------------------------------
 x = threading.Thread(target = metricsPolling , daemon=True)
 x.start()
 
+
+
+# Lauching the bot ---------------------------------------------------------------------------------------------------------------------------------------
+try:
+    bot = telebot.TeleBot(bot_token)
+except Exception as e:
+    print("impossible ti initiate a bot from the bot token. ", str(e))
+
+bot.send_message(bot_chatID, "Awaken!!!")
 print("bot start polling...")
+
 bot.polling(none_stop=False, interval=1, timeout=20)
