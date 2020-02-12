@@ -15,11 +15,26 @@ delay_between_temp_check = 10
 last_day = None
 frequency = 60//delay_between_temp_check
 
+# getting the secrets ------------------------------------------------------------------------------------------------------------------------------------
+try:
+
+    with open("secrets.json", "r") as file:
+        data = json.load(file)
+
+        bot_token = data["bot_token"]
+
+        bot_chatID = data["chat_id"]
+except Exception as e:
+    print("impossible to load the token and chatID. Are you sure you have a proper secrets.json in the same folder", str(e))
+    sys.exit(1)
+
+
 # creating the bot ---------------------------------------------------------------------------------------------------------------------------------------
 try:
     bot = telebot.TeleBot(bot_token)
 except Exception as e:
     print("impossible ti initiate a bot from the bot token. ", str(e))
+    exit()
 
 # Lauching the bot ---------------------------------------------------------------------------------------------------------------------------------------
 bot.send_message(bot_chatID, "Awaken!!!")
@@ -46,18 +61,6 @@ def getLogs(current_day):
     except:
         return None
 
-# getting the secrets ------------------------------------------------------------------------------------------------------------------------------------
-try:
-
-    with open("secrets.json", "r") as file:
-        data = json.load(file)
-
-        bot_token = data["bot_token"]
-
-        bot_chatID = data["chat_id"]
-except Exception as e:
-    print("impossible to load the token and chatID. Are you sure you have a proper secrets.json in the same folder", str(e))
-    sys.exit(1)
 
 # COMMANDS -----------------------------------------------------------------------------------------------------------------------------------------------
 @bot.message_handler(commands=['start', 'help'])
