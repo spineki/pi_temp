@@ -25,7 +25,7 @@ def metricsPolling():
         current_hour = d.strftime("%H:%M:%S")
         if current_day is not last_day:
             last_day = current_day
-        
+
 
         with open("logs/"+last_day, "a+") as file:
             file.write(current_hour + " " + str(current_temp) + "\n")
@@ -86,16 +86,16 @@ def get_logs(message):
 
     try:
         logs = ""
-        with open("logs/" + current_day+".json", "r") as file:
+        with open("logs/" + current_day, "r") as file:
             for ligne in file:
-                logs+=ligne
-        bot.reply_to(message, "impossible to get the température from the cpu")
-    except:
+                logs+=ligne + "°C"
         bot.reply_to(message, "here are the logs\n" + logs)
+    except Exception as e:
+        print(str(e))
+        bot.reply_to(message, "impossible to get the logs from " + current_day)
 
 x = threading.Thread(target = metricsPolling , daemon=True)
 x.start()
-
 
 print("bot start polling...")
 bot.polling(none_stop=False, interval=1, timeout=20)
