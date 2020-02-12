@@ -114,22 +114,28 @@ def get_graph(message):
     logs = getLogs(current_day)
 
     if logs is not None:
-        plt.clf()
-        dico = {}
-        lignes = logs.split("\n")
-        for ligne in lignes:
-            try:
-                tab = ligne.split()
-                dico[tab[0]] = tab[1]
-            except: pass
+        try:
+            plt.clf()
+            dico = {}
+            lignes = logs.split("\n")
+            for ligne in lignes:
+                try:
+                    tab = ligne.split()
+                    dico[tab[0]] = tab[1]
+                except: pass
 
-        X = list(dico)
-        Y = [dico[k] for k in x]
+            X = list(dico)
+            Y = [dico[k] for k in X]
+            my_xticks = list(dico)
+            frequency = 60//delay_between_temp_check
+            plt.plot(X, Y)
 
-        plt.plot(X, Y)
-        plt.savefig("graph/graph.png")
-        photo = open("graph/graph.png", "rb")
-        bot.send_photo(bot_chatID, photo)
+            plt.xticks(x[::frequency], my_xticks[::frequency])
+            plt.savefig("graph/graph.png")
+            photo = open("graph/graph.png", "rb")
+            bot.send_photo(bot_chatID, photo)
+        except:
+            bot.reply_to(message, "unable to retrieve the logs from" + current_day)
     else:
         bot.reply_to(message, "unable to retrieve the logs from" + current_day)
 
@@ -152,4 +158,4 @@ x.start()
 bot.send_message(bot_chatID, "Awaken!!!")
 print("bot start polling...")
 
-bot.polling(none_stop=False, interval=1, timeout=20)
+bot.polling(none_stop=False, interval=2, timeout=20)
