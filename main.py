@@ -5,7 +5,9 @@ import os
 import threading
 import time
 import datetime
-
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 # Here are defined some default values
 delay_between_temp_check = 10
@@ -93,6 +95,17 @@ def get_logs(message):
     except Exception as e:
         print(str(e))
         bot.reply_to(message, "impossible to get the logs from " + current_day)
+
+@bot.message_handler(commands = ["graph"])
+def get_graph(message):
+    global bot_chatID
+    print("début du graphe")
+    plt.clf()
+    plt.plot([1,2,3])
+    plt.savefig("graph/graph.png")
+    photo = open("graph/graph.png", "rb")
+    bot.send_photo(bot_chatID, photo)
+    print("fini")
 
 x = threading.Thread(target = metricsPolling , daemon=True)
 x.start()
