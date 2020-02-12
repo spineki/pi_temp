@@ -25,6 +25,7 @@ def metricsPolling():
         current_hour = d.strftime("%H:%M:%S")
         if current_day is not last_day:
             last_day = current_day
+            bot.send_message(bot_chatID, "hey, I'm still awake!")
 
 
         with open("logs/"+last_day, "a+") as file:
