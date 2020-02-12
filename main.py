@@ -99,7 +99,7 @@ def get_logs(message):
     logs = getLogs(current_day)
 
     if logs is not None:
-        bot.reply_to(message, "here are the logs\n" + logs)
+        bot.reply_to(message, "here are the logs" + logs + "\n")
     else:
         print(str(e))
         bot.reply_to(message, "impossible to get the logs from " + current_day)
@@ -118,8 +118,10 @@ def get_graph(message):
         dico = {}
         lignes = logs.split("\n")
         for ligne in lignes:
-            tab = ligne.split()
-            dico[tab[0]] = tab[1]
+            try:
+                tab = ligne.split()
+                dico[tab[0]] = tab[1]
+            except: pass
 
         X = list(dico)
         Y = [dico[k] for k in x]
