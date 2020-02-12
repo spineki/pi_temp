@@ -130,7 +130,9 @@ def get_graph(message):
             frequency = 60//delay_between_temp_check
             plt.plot(X, Y)
 
-            plt.xticks(x[::frequency], my_xticks[::frequency])
+            plt.xticks(X[::frequency], my_xticks[::frequency])
+            plt.tick_params(axis="x", labelrotation=-60, labelsize = 12)
+            plt.tight_layout()
             plt.savefig("graph/graph.png")
             photo = open("graph/graph.png", "rb")
             bot.send_photo(bot_chatID, photo)
