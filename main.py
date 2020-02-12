@@ -65,6 +65,11 @@ except Exception as e:
     print("impossible to load the token and chatID. Are you sure you have a proper secrets.json in the same folder", str(e))
     sys.exit(1)
 
+# creating the bot ---------------------------------------------------------------------------------------------------------------------------------------
+try:
+    bot = telebot.TeleBot(bot_token)
+except Exception as e:
+    print("impossible ti initiate a bot from the bot token. ", str(e))
 
 # COMMANDS -----------------------------------------------------------------------------------------------------------------------------------------------
 @bot.message_handler(commands=['start', 'help'])
@@ -142,11 +147,6 @@ x.start()
 
 
 # Lauching the bot ---------------------------------------------------------------------------------------------------------------------------------------
-try:
-    bot = telebot.TeleBot(bot_token)
-except Exception as e:
-    print("impossible ti initiate a bot from the bot token. ", str(e))
-
 bot.send_message(bot_chatID, "Awaken!!!")
 print("bot start polling...")
 
