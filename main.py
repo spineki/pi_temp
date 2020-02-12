@@ -135,6 +135,9 @@ if not os.path.exists('logs'):
 if not os.path.exists('graph'):
     os.makedirs('graph')
 
+# Lauching the bot ---------------------------------------------------------------------------------------------------------------------------------------
+bot.send_message(bot_chatID, "Awaken!!!")
+print("bot start polling...")
 
 # Launching the background thread ------------------------------------------------------------------------------------------------------------------------
 def metricsPolling():
@@ -163,8 +166,6 @@ x.start()
 
 
 
-# Lauching the bot ---------------------------------------------------------------------------------------------------------------------------------------
-bot.send_message(bot_chatID, "Awaken!!!")
-print("bot start polling...")
+
 
 bot.polling(none_stop=False, interval=2, timeout=20)
