@@ -110,9 +110,11 @@ def send_graph(logs):
     my_xticks = list(dico)
     plt.plot(X, Y)
 
-    frequency = min(max_number_timestamp_displayed, len(X))
+    
+    step = len(X)//max_number_timestamp_displayed
+    step = max(1, step) # to avoid a 0 step if there is not enought measures
 
-    plt.xticks(X[::frequency], my_xticks[::frequency])
+    plt.xticks(X[::step], my_xticks[::step])
     plt.tick_params(axis="x", labelrotation=-60, labelsize = 12)
     plt.tight_layout()
     plt.savefig("graph/graph.png")
