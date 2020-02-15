@@ -106,7 +106,7 @@ def send_graph(logs):
         except: pass
 
     X = list(dico)
-    Y = [dico[k] for k in X]
+    Y = [float(dico[k]) for k in X]
     my_xticks = list(dico)
     plt.plot(X, Y)
 
@@ -122,7 +122,7 @@ def get_graph(message, current_day = None):
     global bot_chatID
     print("début du graphe")
 
-    if current_day is not None:
+    if current_day is None:
         d = datetime.datetime.today()
         current_day = d.strftime("%d-%m-%Y")
     logs = getLogs(current_day)
