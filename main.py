@@ -12,8 +12,8 @@ import matplotlib.dates as mdates
 
 # default values -----------------------------------------------------------------------------------------------------------------------------------------
 delay_between_temp_check = 10
+max_number_timestamp_displayed = 20
 last_day = None
-frequency = 60//delay_between_temp_check
 
 # getting the secrets ------------------------------------------------------------------------------------------------------------------------------------
 try:
@@ -109,6 +109,8 @@ def send_graph(logs):
     Y = [float(dico[k]) for k in X]
     my_xticks = list(dico)
     plt.plot(X, Y)
+
+    frequency = min(max_number_timestamp_displayed, len(X))
 
     plt.xticks(X[::frequency], my_xticks[::frequency])
     plt.tick_params(axis="x", labelrotation=-60, labelsize = 12)
