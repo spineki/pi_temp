@@ -1,7 +1,4 @@
 import telebot
-import json
-import sys
-import os
 import threading
 import time
 import datetime
@@ -10,56 +7,28 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
-# default values -----------------------------------------------------------------------------------------------------------------------------------------
-delay_between_temp_check = 10
-max_number_timestamp_displayed = 20
-last_day = None
+# custom
+from metricsPooler import MetricsPooler
 
-# getting the secrets ------------------------------------------------------------------------------------------------------------------------------------
-try:
 
-    with open("secrets.json", "r") as file:
-        data = json.load(file)
+# creating the metrics Pooler
+mp = MetricsPooler()
+mp.checkup() # harvest configuration, folders, etc.
 
-        bot_token = data["bot_token"]
-
-        bot_chatID = data["chat_id"]
-except Exception as e:
-    print("impossible to load the token and chatID. Are you sure you have a proper secrets.json in the same folder", str(e))
-    sys.exit(1)
 
 
 # creating the bot ---------------------------------------------------------------------------------------------------------------------------------------
 try:
-    bot = telebot.TeleBot(bot_token)
+    bot = telebot.TeleBot(mp.bot_token)
 except Exception as e:
     print("impossible ti initiate a bot from the bot token. ", str(e))
     exit()
 
 # Lauching the bot ---------------------------------------------------------------------------------------------------------------------------------------
-bot.send_message(bot_chatID, "Awaken!!!")
+bot.send_message(mp.bot_chatID, "Awaken!!!")
 print("bot start polling...")
 
-# important functions ------------------------------------------------------------------------------------------------------------------------------------
-def getTemp():
-    try:
-        with open('/sys/class/thermal/thermal_zone0/temp', 'r') as ftemp:
-            current_temp = int((int(ftemp.read()) / 1000)*100)/100
-            temp = current_temp
-    except Exception as e:
-            print(str(e))
-            temp = None
-    return temp
 
-def getLogs(current_day):
-    try:
-        logs = ""
-        with open("logs/" + current_day, "r") as file:
-            for ligne in file:
-                logs += ligne + "\n"
-        return logs
-    except:
-        return None
 
 
 # COMMANDS -----------------------------------------------------------------------------------------------------------------------------------------------
@@ -75,7 +44,7 @@ def exit(message):
 
 @bot.message_handler(commands=["temp"])
 def get_temp(message):
-    temp = getTemp()
+    temp = mp.getTemp()
     if temp is None:
         bot.reply_to(message, "impossible to get the température from the cpu")
     else:
@@ -87,7 +56,7 @@ def get_logs(message):
     d = datetime.datetime.today()
     current_day = d.strftime("%d-%m-%Y")
 
-    logs = getLogs(current_day)
+    logs = mp.getLogs(current_day)
 
     if logs is not None:
         bot.reply_to(message, "here are the logs\n" + logs)
@@ -111,7 +80,7 @@ def send_graph(logs):
     plt.plot(X, Y)
 
     
-    step = len(X)//max_number_timestamp_displayed
+    step = len(X)//mp.max_number_timestamp_displayed
     step = max(1, step) # to avoid a 0 step if there is not enought measures
 
     plt.xticks(X[::step], my_xticks[::step])
@@ -119,17 +88,16 @@ def send_graph(logs):
     plt.tight_layout()
     plt.savefig("graph/graph.png")
     photo = open("graph/graph.png", "rb")
-    bot.send_photo(bot_chatID, photo)
+    bot.send_photo(mp.bot_chatID, photo)
 
 @bot.message_handler(commands = ["graph"])
 def get_graph(message, current_day = None):
-    global bot_chatID
-    print("début du graphe")
+    print("creating the graph")
 
     if current_day is None:
         d = datetime.datetime.today()
         current_day = d.strftime("%d-%m-%Y")
-    logs = getLogs(current_day)
+    logs = mp.getLogs(current_day)
 
     if logs is not None:
         try:
@@ -139,35 +107,26 @@ def get_graph(message, current_day = None):
     else:
         bot.reply_to(message, "unable to retrieve the logs from" + current_day)
 
-# Creating the folders -----------------------------------------------------------------------------------------------------------------------------------
-if not os.path.exists('logs'):
-    os.makedirs('logs')
-
-if not os.path.exists('graph'):
-    os.makedirs('graph')
-
 
 # Launching the background thread ------------------------------------------------------------------------------------------------------------------------
 def metricsPolling():
-    global last_day
     while True:
-        current_temp = getTemp()
+        current_temp = mp.getTemp()
 
         d = datetime.datetime.today()
         current_day  = d.strftime("%d-%m-%Y")
         current_hour = d.strftime("%H:%M:%S")
-        if current_day != last_day:
-            logs = getLogs(last_day)
+        if current_day != mp.last_day:
+            logs = mp.getLogs(mp.last_day)
             if logs is not None:
                 send_graph(logs)
-            last_day = current_day
-            bot.send_message(bot_chatID, "hey, I'm still awake!")
+            mp.last_day = current_day
+            bot.send_message(mp.bot_chatID, "hey, I'm still awake!")
 
-
-        with open("logs/"+last_day, "a+") as file:
+        with open("logs/"+mp.last_day, "a+") as file:
             file.write(current_hour + " " + str(current_temp) + "\n")
 
-        time.sleep(delay_between_temp_check)
+        time.sleep(mp.delay_between_temp_check)
 
 x = threading.Thread(target = metricsPolling , daemon=True)
 x.start()
