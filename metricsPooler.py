@@ -1,13 +1,15 @@
 import json
 import os
-
+import datetime
+import threading
+import time
 
 class MetricsPooler:
     def __init__(self):
         self.logFolder = "logs"
         self.delay_between_temp_check = None
         self.max_number_timestamp_displayed = None
-        self.last_day = None
+        self.current_day = None
         self.bot_token = None
         self.bot_chatID = None
     
@@ -83,3 +85,30 @@ class MetricsPooler:
             return logs
         except:
             return None
+
+    def metricsPolling(self):
+
+        def _metricsPolling():
+
+            while True:
+                current_temp = self.getTemp()
+
+                d = datetime.datetime.today()
+                self.current_day  = d.strftime("%d-%m-%Y")
+                current_hour = d.strftime("%H:%M:%S")
+
+                with open("logs/" + self.current_day, "a+") as file:
+                    file.write(current_hour + " " + str(current_temp) + "\n")
+
+                time.sleep(self.delay_between_temp_check)
+        
+        x = threading.Thread(target = _metricsPolling, daemon=True)
+        x.start()
+
+"""
+            if current_day != self.last_day:
+                #logs = self.getLogs(self.last_day)
+                #if logs is not None:
+                #    send_graph(logs)
+                self.last_day = current_day
+"""
