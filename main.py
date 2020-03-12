@@ -109,30 +109,5 @@ def get_graph(message, current_day = None):
 
 
 # Launching the background thread ------------------------------------------------------------------------------------------------------------------------
-def metricsPolling():
-    while True:
-        current_temp = mp.getTemp()
-
-        d = datetime.datetime.today()
-        current_day  = d.strftime("%d-%m-%Y")
-        current_hour = d.strftime("%H:%M:%S")
-        if current_day != mp.last_day:
-            logs = mp.getLogs(mp.last_day)
-            if logs is not None:
-                send_graph(logs)
-            mp.last_day = current_day
-            bot.send_message(mp.bot_chatID, "hey, I'm still awake!")
-
-        with open("logs/"+mp.last_day, "a+") as file:
-            file.write(current_hour + " " + str(current_temp) + "\n")
-
-        time.sleep(mp.delay_between_temp_check)
-
-x = threading.Thread(target = metricsPolling , daemon=True)
-x.start()
-
-
-
-
-
+mp.metricsPolling()
 bot.polling(none_stop=False, interval=2, timeout=20)
