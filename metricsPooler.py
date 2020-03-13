@@ -65,6 +65,7 @@ class MetricsPooler:
         if not os.path.exists('graph'):
             os.makedirs('graph')
 
+
     # important functions ------------------------------------------------------------------------------------------------------------------------------------
     def getTemp(self):
         try:
@@ -85,6 +86,19 @@ class MetricsPooler:
             return logs
         except:
             return None
+
+    def save_event(self):
+
+        try:
+            d = datetime.datetime.today()
+            self.current_day  = d.strftime("%d-%m-%Y")
+            current_hour = d.strftime("%H:%M:%S")
+
+            with open("logs/" + self.current_day, "a+") as file:
+                file.write(current_hour + " " + "event" + "\n")
+            return True
+        except:
+            return False
 
     def metricsPolling(self):
 
