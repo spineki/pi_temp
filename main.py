@@ -95,17 +95,13 @@ def send_graph(logs):
     X = [datetime.datetime.strptime(x,"%H:%M:%S") for x in X]
     Y = [float(dico[elem]) for elem in dico]
     
-    plt.plot_date(X, Y)
+    plt.plot_date(X, Y, linestyle ="--")
     
     #plt.set_major_formatter(formatter)
     print(events, "event")
     for event in events:
         print(event)
         ax.axvline(x=  datetime.datetime.strptime(event, "%H:%M:%S"), color = "red")
-
-    
-
-
     
     step = len(X)//mp.max_number_timestamp_displayed
     step = max(1, step) # to avoid a 0 step if there is not enought measures
