@@ -50,7 +50,7 @@ class MetricsPooler:
         except Exception as e:
             print("impossible to load the token and chatID. Make sure too properly write your secrets file", str(e))
     
-            with open("secrets.json", "w+") as f:
+            with open("secrets_example.json", "w+") as f:
                 data = {
                     "bot_token" : "Your bot token",
                     "bot_chatID" : "your chat id"
