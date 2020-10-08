@@ -40,7 +40,7 @@ You will retrieve a token. It's the bot_token.
 ``` json
 {
     "bot_token": "Your bot token",
-    "chat_id":"Your chat Id"
+    "bot_chatID":"Your chat Id"
 }
 ```
 
