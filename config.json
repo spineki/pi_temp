@@ -2,5 +2,5 @@
     "delay_between_temp_check": 10,
     "max_number_timestamp_displayed": 20,
     "device_name": "Raspberry Antoine",
-    "warning_temperature": 60
+    "warning_temperature": 40
 }
