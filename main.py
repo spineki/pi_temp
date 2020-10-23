@@ -20,10 +20,22 @@ from metricsPooler import MetricsPooler
 mp = MetricsPooler()
 mp.checkup() # harvest configuration, folders, etc.
 
+
+def sendMessageCreator(bot, bot_chatID):
+    """
+    callback creator for botfrom the chat
+    """
+    def _worker(message):
+        bot.send_message(bot_chatID, message)
+
+    return _worker
+
+
 # creating the bot ---------------------------------------------------------------------------------------------------------------------------------------
 try:
     bot = telebot.TeleBot(mp.bot_token)
-    mp.setBotRef(bot) # messy, TODO, split bot logic from metrics Pooler or pass a callback
+    mp.setSendMessageFunction(sendMessageCreator(bot, mp.bot_chatID))
+
 except Exception as e:
     print("💥 impossible to initiate a bot from the bot token.")
     print(str(e))
@@ -82,7 +94,7 @@ def get_temp(message):
         
 
         if temperature >= mp.warning_temperature:
-            temperature_text += "\n⚠️ Careful, the temperature exceeds your threshold: " + str(mp.warning_temperature)
+            temperature_text += "\n⚠️ Careful, the temperature exceeds your threshold: " + str(mp.warning_temperature) + "°C"
         
         bot.reply_to(message, temperature_text)
 
