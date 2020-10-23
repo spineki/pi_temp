@@ -18,8 +18,8 @@ class MetricsPooler:
         self.sendMessage = None
         self.bot_ref = None
 
-    def setBotRef(self, bot):
-        self.bot_ref = bot
+    def setSendMessageFunction(self, sendMessageFunction):
+        self.sendMessage = sendMessageFunction
 
     
     def checkup(self):
@@ -119,8 +119,7 @@ class MetricsPooler:
 
 
                 if (current_temp > self.warning_temperature): # warn the user
-                    self.bot_ref.send_message(self.bot_chatID, "🔥⚠️ Careful, the temperature exceeds your threshold: " + str(self.warning_temperature))
-
+                    self.sendMessage("⚠️ Careful, the temperature 🔥{0}°C🔥 exceeds {1}°C".format(str(current_temp), str(self.warning_temperature) ))
                 with open("logs/" + self.current_day, "a+") as file:
                     file.write(current_hour + " " + str(current_temp) + "\n")
 
