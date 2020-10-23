@@ -16,7 +16,7 @@ You can create a venv if you prefer to do so.
 `source  venv/bin/activate`
 `pip install -r requirements.txt`
 
-and 
+and when you need 
 `deactivate` to quit
 
 ## 2) Launch the main.py file once.
@@ -36,7 +36,7 @@ You will retrieve a token. It's the bot_token.
 
 
 
-## 4) Fill this secrets.json as following
+## 4) Create a secrets.json file in the folder and fill it as following (you can copy secrets-example.json)
 ``` json
 {
     "bot_token": "Your bot token",
@@ -44,11 +44,24 @@ You will retrieve a token. It's the bot_token.
 }
 ```
 
-## 5) Relaunch the main.py file. Normaly, your bot will send you a message saying ``` Awaken!!!```
+
+## 5) Create a config.json in the folder and fill it as following (you can copy config-example.json).
+```json
+{
+    "delay_between_temp_check": 10,
+    "max_number_timestamp_displayed": 20,
+    "device_name": "Your device name",
+    "warning_temperature": 50
+}
+```
+
+
+## 6) Relaunch the main.py file. Normaly, your bot will send you a message saying ``` Awaken!!!```
 
 Everything should be working!!
 
 go to your telegram application:
+type```/help```, You should get a list of available commands.
 type ```/temp```. You should get the current temp
 type ```/graph```. you should get your temperature graph
 type ```/logs```. you should get your logs.
@@ -57,6 +70,9 @@ type ```/exit```. The programm should stop in your raspberry
 Logs are stored day by day in the logs folder.
 
 At midnight, the bot will send a graph recaping what happended the last day. 
+
+If the temperature is higher than ```warning_temperature``` in config file, the bot will warn you.
+
 
 
 Have fun!!!
