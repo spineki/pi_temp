@@ -1,3 +1,6 @@
+#!/usr/bin/python3
+
+from subprocess import check_output
 import telebot
 import threading
 import time
@@ -29,8 +32,8 @@ except Exception as e:
 # Lauching the bot ---------------------------------------------------------------------------------------------------------------------------------------
 bot.send_message(mp.bot_chatID, "Awaken!!!")
 print("bot start polling...")
-
-
+local_ip = str(check_output(["hostname", "-I"]))
+bot.send_message(mp.bot_chatID, "Current IP:\n" + "\n".join(str(local_ip).strip().split()))
 
 
 # COMMANDS -----------------------------------------------------------------------------------------------------------------------------------------------
