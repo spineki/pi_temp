@@ -1,2 +1,4 @@
-matplotlib
-pyTelegramBotAPI
+numpy==1.19.2
+matplotlib==3.3.2
+pyTelegramBotAPI==3.7.3
+
