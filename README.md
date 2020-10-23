@@ -19,7 +19,7 @@ You can create a venv if you prefer to do so.
 and 
 `deactivate` to quit
 
-## 2) Launch the main.py file once.
+## 2) Launch the main.py file once.
 This will create all the necessary files and folder for the program. (logs, graph, secrets file and config file)
 
 
@@ -40,7 +40,7 @@ You will retrieve a token. It's the bot_token.
 ``` json
 {
     "bot_token": "Your bot token",
-    "chat_id":"Your chat Id"
+    "bot_chatID":"Your chat Id"
 }
 ```
 
