@@ -133,3 +133,7 @@ secrets.json
 
 # images
 graph/*
+
+# logs
+logs/*
+logs.txt
