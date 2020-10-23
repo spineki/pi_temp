@@ -131,5 +131,12 @@ dmypy.json
 # secrets
 secrets.json
 
+# config
+config.json
+
 # images
 graph/*
+
+# logs
+logs/*
+logs.txt

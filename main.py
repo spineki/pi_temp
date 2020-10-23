@@ -1,7 +1,10 @@
+#!/usr/bin/python3
+
 import telebot
 import threading
 import time
 import datetime
+import math
 
 import matplotlib
 matplotlib.use('Agg')
@@ -18,39 +21,82 @@ mp = MetricsPooler()
 mp.checkup() # harvest configuration, folders, etc.
 
 
+def sendMessageCreator(bot, bot_chatID):
+    """
+    callback creator for botfrom the chat
+    """
+    def _worker(message):
+        bot.send_message(bot_chatID, message)
+
+    return _worker
+
 
 # creating the bot ---------------------------------------------------------------------------------------------------------------------------------------
 try:
     bot = telebot.TeleBot(mp.bot_token)
+    mp.setSendMessageFunction(sendMessageCreator(bot, mp.bot_chatID))
+
 except Exception as e:
-    print("impossible ti initiate a bot from the bot token. ", str(e))
+    print("💥 impossible to initiate a bot from the bot token.")
+    print(str(e))
     exit()
 
 # Lauching the bot ---------------------------------------------------------------------------------------------------------------------------------------
-bot.send_message(mp.bot_chatID, "Awaken!!!")
-print("bot start polling...")
+bot.send_message(mp.bot_chatID, "⚙️ Awaken!!! on " + mp.device_name)
+
+print("⚙️ bot start polling on " + mp.device_name )
+
+# display current ip on startup
+bot.send_message(mp.bot_chatID, "Current IP:\n" + mp.ip)
 
 
+available_commands ="""
+Available commands:
 
+- /start, /help: Display the list of available commands
+- /stop, /exit, /shutdown: Stop this program on the pi (but not the pi itself)
+- /temp: Display the current temperature
+- /logs, /log: Display the today logs
+- /mark, /stamp, /event: register this current moment in the logs and add a vertical red line in the plots.
+- /graph: Display a graph of today temperature 
+"""
+
+bot.send_message(mp.bot_chatID, available_commands)
 
 # COMMANDS -----------------------------------------------------------------------------------------------------------------------------------------------
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
-	bot.reply_to(message, "Hi! type /temp to get the temp, /recap to get a recap, /stop to stop the programm on the raspberry")
 
-@bot.message_handler(commands=['stop', "exit", "shutdown"])
-def exit(message):
-    bot.reply_to(message, "Bye!")
-    print("find du pooling")
-    exit(0)
+    help_text = """Hello! This bots aim to monitor temperature.
+    
+    {0}
+
+    Coded by Spineki (Antoine Marras)    
+    """.format(available_commands)
+
+    bot.reply_to(message, help_text)
 
 @bot.message_handler(commands=["temp"])
 def get_temp(message):
-    temp = mp.getTemp()
-    if temp is None:
+    temperature = mp.getTemp()
+    if temperature is None:
         bot.reply_to(message, "impossible to get the température from the cpu")
     else:
-        bot.reply_to(message, str(temp) + "°C")
+
+        temperature_text = ""
+        
+        if temperature < 60:
+            temperature_text = "❄️ {0}°C".format(str(temperature))
+        elif temperature < 80:
+            temperature_text = "🔥 {0}°C".format(str(temperature))
+        else:
+            temperature_text = "💥 {0}°C".format(str(temperature))
+        
+
+        if temperature >= mp.warning_temperature:
+            temperature_text += "\n⚠️ Careful, the temperature exceeds your threshold: " + str(mp.warning_temperature) + "°C"
+        
+        bot.reply_to(message, temperature_text)
 
 @bot.message_handler(commands=["log", "logs"])
 def get_logs(message):
@@ -61,17 +107,31 @@ def get_logs(message):
     logs = mp.getLogs(current_day)
 
     if logs is not None:
-        bot.reply_to(message, "here are the logs\n" + logs)
+
+        # we need to break too long logs in small pieces
+        
+        max_length_message = 4000 # 4096, but we avoid too much risk
+
+        logs_length = len(logs)
+
+        nb_chunk = math.ceil(logs_length/max_length_message)
+
+        for i in range(nb_chunk):
+            
+            chunk = logs[i*max_length_message: min((i+1)*max_length_message, logs_length )]
+
+            bot.reply_to(message, "📚 {0}/{1}\n\n{2}".format(i+1, nb_chunk, chunk ))
+            
     else:
         print(str(e))
         bot.reply_to(message, "impossible to get the logs from " + current_day)
 
 @bot.message_handler(commands = ["mark", "stamp", "event"])
-def save_event(message):
-    if mp.save_event():
-        bot.reply_to(message, "event saved in logs")
+def saveEvent(message):
+    if mp.saveEvent():
+        bot.reply_to(message, "✔️ event saved in logs")
     else:
-        bot.reply_to(message, "fail to save the event!")
+        bot.reply_to(message, "❌ fail to save the event!")
 
 def send_graph(logs):
     plt.clf()
@@ -118,7 +178,8 @@ def send_graph(logs):
 
 @bot.message_handler(commands = ["graph"])
 def get_graph(message, current_day = None):
-    print("creating the graph")
+
+    bot.reply_to(message, "creating the graph...")
 
     if current_day is None:
         d = datetime.datetime.today()
@@ -132,6 +193,12 @@ def get_graph(message, current_day = None):
             bot.reply_to(message, "unable to retrieve the logs from" + current_day + str(e))
     else:
         bot.reply_to(message, "unable to retrieve the logs from" + current_day)
+
+@bot.message_handler(commands=['stop', "exit", "shutdown"])
+def exit(message):
+    bot.reply_to(message, "👼 Bye! ")
+    print("Pooling ends")
+    exit(0)
 
 
 

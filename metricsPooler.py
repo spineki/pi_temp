@@ -2,44 +2,46 @@ import json
 import os
 import datetime
 import threading
+from subprocess import check_output
 import time
+
 
 class MetricsPooler:
     def __init__(self):
         self.logFolder = "logs"
-        self.delay_between_temp_check = None
-        self.max_number_timestamp_displayed = None
-        self.current_day = None
-        self.bot_token = None
-        self.bot_chatID = None
+        self.delay_between_temp_check: float = None
+        self.max_number_timestamp_displayed: int = None
+        self.current_day: str = None
+        self.bot_token: str = None
+        self.bot_chatID: str = None
+        self.ip: str = None
+        self.sendMessage = None
+        self.bot_ref = None
+
+    def setSendMessageFunction(self, sendMessageFunction):
+        self.sendMessage = sendMessageFunction
+
     
     def checkup(self):
-        self.load_pooling_config()
-        self.get_secrets()
-        self.create_folders()
+        self._loadPoolingConfig()
+        self._loadSecrets()
+        self._createFolders()
+        self._fetchIp()
 
-    def load_pooling_config(self):
+    def _loadPoolingConfig(self):
         try:
             with open("config.json", "r") as f:
                 data = json.load(f)
                 self.delay_between_temp_check = data["delay_between_temp_check"]
                 self.max_number_timestamp_displayed = data["max_number_timestamp_displayed"]
+                self.device_name = data["device_name"]
+                self.warning_temperature = data["warning_temperature"]
 
         except:
             # if an error occured, we recreate the config file
             print("impossible to load the config file")
-            self.delay_between_temp_check = 10
-            self.max_number_timestamp_displayed = 20
-
-            with open("config.json", "w+") as f:
-                data = {
-                "delay_between_temp_check": self.delay_between_temp_check,
-                "max_number_timestamp_displayed" : self.max_number_timestamp_displayed
-                }
-
-                json.dump(data, f, indent = 4)
     
-    def get_secrets(self):
+    def _loadSecrets(self):
 
         try:
             with open("secrets.json", "r") as file:
@@ -57,7 +59,7 @@ class MetricsPooler:
                 }
                 json.dump(data, f, indent = 4) 
 
-    def create_folders(self):
+    def _createFolders(self):
 
         if not os.path.exists('logs'):
             os.makedirs('logs')
@@ -87,7 +89,11 @@ class MetricsPooler:
         except:
             return None
 
-    def save_event(self):
+    def _fetchIp(self):
+        local_ip = str(check_output(["hostname", "-I"]))
+        self.ip = "\n".join(str(local_ip).strip().split())
+
+    def saveEvent(self):
 
         try:
             d = datetime.datetime.today()
@@ -103,7 +109,7 @@ class MetricsPooler:
     def metricsPolling(self):
 
         def _metricsPolling():
-
+            
             while True:
                 current_temp = self.getTemp()
 
@@ -111,6 +117,9 @@ class MetricsPooler:
                 self.current_day  = d.strftime("%d-%m-%Y")
                 current_hour = d.strftime("%H:%M:%S")
 
+
+                if (current_temp > self.warning_temperature): # warn the user
+                    self.sendMessage("⚠️ Careful, the temperature 🔥{0}°C🔥 exceeds {1}°C".format(str(current_temp), str(self.warning_temperature) ))
                 with open("logs/" + self.current_day, "a+") as file:
                     file.write(current_hour + " " + str(current_temp) + "\n")
 
@@ -119,10 +128,3 @@ class MetricsPooler:
         x = threading.Thread(target = _metricsPolling, daemon=True)
         x.start()
 
-"""
-            if current_day != self.last_day:
-                #logs = self.getLogs(self.last_day)
-                #if logs is not None:
-                #    send_graph(logs)
-                self.last_day = current_day
-"""
