@@ -15,6 +15,12 @@ class MetricsPooler:
         self.bot_token: str = None
         self.bot_chatID: str = None
         self.ip: str = None
+        self.sendMessage = None
+        self.bot_ref = None
+
+    def setBotRef(self, bot):
+        self.bot_ref = bot
+
     
     def checkup(self):
         self._loadPoolingConfig()
@@ -103,13 +109,17 @@ class MetricsPooler:
     def metricsPolling(self):
 
         def _metricsPolling():
-
+            
             while True:
                 current_temp = self.getTemp()
 
                 d = datetime.datetime.today()
                 self.current_day  = d.strftime("%d-%m-%Y")
                 current_hour = d.strftime("%H:%M:%S")
+
+
+                if (current_temp > self.warning_temperature): # warn the user
+                    self.bot_ref.send_message(self.bot_chatID, "🔥⚠️ Careful, the temperature exceeds your threshold: " + str(self.warning_temperature))
 
                 with open("logs/" + self.current_day, "a+") as file:
                     file.write(current_hour + " " + str(current_temp) + "\n")

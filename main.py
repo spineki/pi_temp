@@ -4,6 +4,7 @@ import telebot
 import threading
 import time
 import datetime
+import math
 
 import matplotlib
 matplotlib.use('Agg')
@@ -22,6 +23,7 @@ mp.checkup() # harvest configuration, folders, etc.
 # creating the bot ---------------------------------------------------------------------------------------------------------------------------------------
 try:
     bot = telebot.TeleBot(mp.bot_token)
+    mp.setBotRef(bot) # messy, TODO, split bot logic from metrics Pooler or pass a callback
 except Exception as e:
     print("💥 impossible to initiate a bot from the bot token.")
     print(str(e))
@@ -37,14 +39,14 @@ bot.send_message(mp.bot_chatID, "Current IP:\n" + mp.ip)
 
 
 available_commands ="""
-        Available commands:
-        
-        - !start, !help: Display the list of available commands
-        - !stop, !exit, !shutdown: Stop this program on the pi (but not the pi itself)
-        - !temp: Display the current temperature
-        - !logs, !log: Display the today logs
-        - !mark, !stamp, !event: register this current moment in the logs and add a vertical red line in the plots.
-        - !graph: Display a graph of today temperature 
+Available commands:
+
+- /start, /help: Display the list of available commands
+- /stop, /exit, /shutdown: Stop this program on the pi (but not the pi itself)
+- /temp: Display the current temperature
+- /logs, /log: Display the today logs
+- /mark, /stamp, /event: register this current moment in the logs and add a vertical red line in the plots.
+- /graph: Display a graph of today temperature 
 """
 
 bot.send_message(mp.bot_chatID, available_commands)
@@ -80,7 +82,7 @@ def get_temp(message):
         
 
         if temperature >= mp.warning_temperature:
-            temperature_text += "\n⚠️ Careful, the temperature exceed your threshold: " + str(mp.warning_temperature)
+            temperature_text += "\n⚠️ Careful, the temperature exceeds your threshold: " + str(mp.warning_temperature)
         
         bot.reply_to(message, temperature_text)
 
@@ -93,7 +95,21 @@ def get_logs(message):
     logs = mp.getLogs(current_day)
 
     if logs is not None:
-        bot.reply_to(message, "here are the logs\n" + logs)
+
+        # we need to break too long logs in small pieces
+        
+        max_length_message = 4000 # 4096, but we avoid too much risk
+
+        logs_length = len(logs)
+
+        nb_chunk = math.ceil(logs_length/max_length_message)
+
+        for i in range(nb_chunk):
+            
+            chunk = logs[i*max_length_message: min((i+1)*max_length_message, logs_length )]
+
+            bot.reply_to(message, "📚 {0}/{1}\n\n{2}".format(i+1, nb_chunk, chunk ))
+            
     else:
         print(str(e))
         bot.reply_to(message, "impossible to get the logs from " + current_day)
@@ -168,9 +184,11 @@ def get_graph(message, current_day = None):
 
 @bot.message_handler(commands=['stop', "exit", "shutdown"])
 def exit(message):
-    bot.reply_to(message, "Bye! ")
+    bot.reply_to(message, "👼 Bye! ")
     print("Pooling ends")
     exit(0)
+
+
 
 
 # Launching the background thread ------------------------------------------------------------------------------------------------------------------------
